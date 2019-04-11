@@ -4,7 +4,13 @@
 - name: Install redis gem
   package:
     name: rubygem-redis
+  when: ansible_facts['os_family'] != "Debian"
 
+- name: Install redis gem
+  apt:
+    name: ruby-redis
+  when: ansible_facts['os_family'] == "Debian"
+  
 - name: Install redis-trib from localfile.
   copy:
     src: redis-trib

@@ -1,0 +1,17 @@
+port {{ redis_port  }}
+cluster-enabled yes
+cluster-config-file {{ redis_data_dir }}/{{ redis_port }}/nodes.conf
+dir {{ redis_data_dir }}/{{ redis_port }}
+pidfile {{ redis_run_dir }}/node_{{ redis_port }}.pid
+logfile ""
+syslog-enabled yes
+syslog-ident redis_{{redis_port}}
+syslog-facility local0
+
+cluster-node-timeout 5000
+daemonize no
+appendonly yes
+supervised systemd
+
+# MAKE INTERFACE UNSECURE !!
+protected-mode no

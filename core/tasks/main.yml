@@ -50,9 +50,32 @@
     group: redis
     mode: 0755
 
-#Workaround the config dir to use is hardcoded in the script
+# Workaround the config dir to use is hardcoded in the script
 - name: Fix conf dir in redis-shutdown
   replace:
     dest: /usr/libexec/redis-shutdown
     regexp: '^CONFIG_FILE=.*$'
     replace: 'CONFIG_FILE="{{ redis_conf_dir }}/$SERVICE_NAME.conf"'
+  when: ansible_facts['os_family'] != "Debian"
+
+## disable transparent huge pages
+
+- name: inject kernel.mm.transparent_hugepage
+  shell: "echo never > /sys/kernel/mm/transparent_hugepage/enabled && touch {{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+  args:
+    creates: "{{ansible_env.HOME}}/.kernel.mm.transparent_hugepage.never"
+
+- name: Add a job to disable trasparent huge pages on systemd systems. 
+  template:
+    src: "disable-thp.service"
+    dest: "/etc/systemd/system/disable-thp.service"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Build relationship
+  systemd:
+    name: disable-thp
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  when: ansible_facts['os_family'] == "Debian"
+
